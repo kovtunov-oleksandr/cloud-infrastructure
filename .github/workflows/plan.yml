@@ -1,0 +1,48 @@
+name: Plan
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+env:
+  TERRAFORM_VERSION: 1.9.3
+
+concurrency:
+  # only one run at a time
+  group: terraform-${{ github.repository }}-${{ github.ref }}
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -detailed-exitcode -out=plan.tfplan -no-color 2>&1 | tee plan.txt
+          terraform show -json plan.tfplan > plan.json
+          
+          # Create a github output
+          echo "result=$(cat plan.txt)" >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: ${{ steps.plan.outputs.result }}
