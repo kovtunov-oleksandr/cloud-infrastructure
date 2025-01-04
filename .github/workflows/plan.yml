@@ -45,11 +45,3 @@ jobs:
         run: |
           terraform plan -detailed-exitcode -out=tfplan
           terraform show tfplan > tfplan.txt
-          
-          echo "::set-output name=plan::$(cat tfplan.txt)"
-
-      - name: Render Message to PR Comments and Summary
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          # hardcoded working directory
-          message: ${{ steps.plan.outputs.plan }}
