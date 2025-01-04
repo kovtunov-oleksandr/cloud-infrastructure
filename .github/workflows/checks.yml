@@ -37,4 +37,4 @@ jobs:
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
       - name: TFLint
-        run: tflint --deep
+        run: tflint -f compact
