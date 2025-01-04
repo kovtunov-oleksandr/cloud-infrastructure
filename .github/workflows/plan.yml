@@ -50,4 +50,4 @@ jobs:
         uses: thollander/actions-comment-pull-request@v3
         with:
           # hardcoded working directory
-          filePath: "aws/dev/eu-west-1/tfplan.json"
+          filePath: "**/tfplan.json"
