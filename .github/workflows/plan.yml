@@ -1,0 +1,47 @@
+name: Plan
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+env:
+  TERRAFORM_VERSION: 1.9.3
+
+concurrency:
+  # only one run at a time
+  group: terraform-${{ github.repository }}-${{ github.ref }}
+
+permissions:
+  pull-requests: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        # hardcoded working directory
+        working-directory: aws/dev/eu-west-1
+        run: terraform init
+
+      - name: Terraform Plan
+        # hardcoded working directory
+        working-directory: aws/dev/eu-west-1
+        id: plan
+        run: |
+          terraform plan -detailed-exitcode -out=tfplan
+          terraform show tfplan > tfplan.txt
