@@ -1,5 +1,5 @@
 locals {
-  region = dirname(abspath(path.module))
+  region = basename(path.cwd)
   environment = basename(abspath(path.module))
   tags = {
     environment = local.environment
